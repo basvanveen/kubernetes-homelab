@@ -1,0 +1,16 @@
+- name:
+  hosts: nodes
+  become: yes
+  tasks:
+    - name: start containerd systemd serice
+      ansible.builtin.systemd:
+        name: containerd.service
+        state: started
+    - name: start kubelet serice
+      ansible.builtin.systemd:
+        name: kubelet.service
+        state: started
+    - name: start kube-proxy systemd serice
+      ansible.builtin.systemd:
+        name: kube-proxy.service
+        state: started

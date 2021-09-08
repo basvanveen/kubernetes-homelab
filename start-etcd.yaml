@@ -1,0 +1,8 @@
+- name:
+  hosts: etcd
+  become: yes
+  tasks:
+    - name: reload systemd serice
+      ansible.builtin.systemd:
+        name: etcd.service
+        state: started

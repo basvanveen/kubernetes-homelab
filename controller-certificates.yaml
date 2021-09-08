@@ -1,0 +1,34 @@
+- name: Install global certificates
+  hosts: controllers
+  become: yes
+  tasks:
+
+    - name: Copy CA cert
+      ansible.builtin.copy:
+        src: certs/ca.crt
+        dest: /var/lib/kubernetes/
+    - name: Copy CA key
+      ansible.builtin.copy:
+        src: certs/ca.key
+        dest: /var/lib/kubernetes/
+    - name: Copy api server cert
+      ansible.builtin.copy:
+        src: files/openssl-controller.conf
+        dest: /var/lib/kubernetes/
+    - name: Copy serviceaccounts cert
+      ansible.builtin.copy:
+        src: certs/service-account.crt
+        dest: /var/lib/kubernetes/
+    - name: Copy service accounts key
+      ansible.builtin.copy:
+        src: certs/service-account.key
+        dest: /var/lib/kubernetes/
+    - name: Copy etcd server cert
+      ansible.builtin.copy:
+        src: certs/etcd.crt
+        dest: /var/lib/kubernetes/
+    - name: Copy etcd server key
+      ansible.builtin.copy:
+        src: certs/etcd.key
+        dest: /var/lib/kubernetes/
+

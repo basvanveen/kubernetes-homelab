@@ -1,0 +1,14 @@
+- name: Execute the command in remote shell; stdout goes to the specified file on the remote.
+  hosts: controllers
+  become: yes
+  tasks:
+    - name: Extract etcd
+      ansible.builtin.copy:
+        src: certs/ca.crt
+        dest: /usr/local/share/ca-certificates/
+    - name: update-ca-certificates
+      shell: update-ca-certificates --fresh
+      register: shell_output
+
+    - name: add root CA to system
+      debug: var=shell_output

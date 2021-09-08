@@ -1,0 +1,94 @@
+- name: Install kube-apiserver
+  hosts: controllers
+  become: yes
+  tasks:
+    - name: Copy openssl conf
+      ansible.builtin.copy:
+        src: files/openssl-controller.conf
+        dest: /var/lib/kubernetes/
+
+    - name: Write systemd file
+      ansible.builtin.copy:
+        src: files/kube-controller-manager.service
+        dest: /etc/systemd/system/
+    - name: Write kube scheduler config
+      ansible.builtin.copy:
+        src: files/kube-controller-manager.kubeconfig
+        dest: /var/lib/kubernetes
+
+    - name: Copy controller manager kubconfig gen.sh
+      ansible.builtin.copy:
+        src: files/kube-controller-manager.sh
+        dest: /var/lib/kubernetes/
+
+    - name: Copy cert shell script
+      ansible.builtin.copy:
+        src: files/kube-controller-manager-cert.sh
+        dest: /var/lib/kubernetes/
+
+
+    - name: REGEX internal ip
+      ansible.builtin.replace:
+        path: /etc/systemd/system/kube-controller-manager.service
+        regexp: 'INTERNAL_IP'
+        replace: '{{ ansible_default_ipv4.address }}'
+    - name: Regex etcdname
+      ansible.builtin.replace:
+        path: /etc/systemd/system/kube-controller-manager.service
+        regexp: 'KUBERNETES_PUBLIC_ADDRESS'
+        replace: '{{ ansible_default_ipv4.address }}'
+
+    - name: REGEX Internal IP for DNS in openssl
+      ansible.builtin.replace:
+        path: /var/lib/kubernetes/openssl-controller.conf
+        regexp: 'INTERNAL_IP'
+        replace: '{{ ansible_default_ipv4.address }}'
+    - name: Regex Kubernetes master ip
+      ansible.builtin.replace:
+        path: /var/lib/kubernetes/openssl-controller.conf
+        regexp: 'MASTER_IP'
+        replace: '10.96.0.1'
+    - name: REGEX Component
+      ansible.builtin.replace:
+        path: /var/lib/kubernetes/openssl-controller.conf
+        regexp: 'COMPONENT'
+        replace: 'kube-controller-manager'
+    - name: Regex Kubernetes master ip
+      ansible.builtin.replace:
+        path: /var/lib/kubernetes/openssl-controller.conf
+        regexp: 'SHORTNAME'
+        replace: '{{ ansible_hostname }}'
+    - name: Regex INT IP kubeconfig
+      ansible.builtin.replace:
+        path: /var/lib/kubernetes/kube-controller-manager.sh
+        regexp: 'INTERNAL_IP'
+        replace: '{{ ansible_default_ipv4.address }}'
+
+
+
+    - name: Execute openssl command to generate crt stuff
+      shell: sh /var/lib/kubernetes/kube-controller-manager-cert.sh
+
+
+    - name: execute shell script
+      shell: sh /var/lib/kubernetes/kube-controller-manager.sh
+
+    - name: output
+      debug: var=shell_output
+
+
+    - name: reload systemd serice
+      ansible.builtin.systemd:
+        name: kube-controller-manager.service
+        daemon_reload: yes
+        state: stopped
+    - name: start systemd serice
+      ansible.builtin.systemd:
+        name: kube-controller-manager.service
+        state: started
+
+
+
+    - name: output
+      debug: var=shell_output
+

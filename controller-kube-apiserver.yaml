@@ -1,0 +1,73 @@
+- name: Install kube-apiserver
+  hosts: controllers
+  become: yes
+  tasks:
+    - name: encryption-config.yaml copy
+      ansible.builtin.copy:
+        src: files/encryption-config.yaml
+        dest: /var/lib/kubernetes/
+    - name: Copy openssl conf
+      ansible.builtin.copy:
+        src: files/openssl-controller.conf
+        dest: /var/lib/kubernetes/
+    - name: Copy cert shell script
+      ansible.builtin.copy:
+        src: files/kube-apiserver-cert.sh
+        dest: /var/lib/kubernetes/
+
+
+    - name: Write systemd file
+      ansible.builtin.copy:
+        src: files/kube-apiserver.service
+        dest: /etc/systemd/system/
+
+    - name: REGEX internal ip
+      ansible.builtin.replace:
+        path: /etc/systemd/system/kube-apiserver.service
+        regexp: 'INTERNAL_IP'
+        replace: '{{ ansible_default_ipv4.address }}'
+    - name: Regex etcdname
+      ansible.builtin.replace:
+        path: /etc/systemd/system/kube-apiserver.service
+        regexp: 'KUBERNETES_PUBLIC_ADDRESS'
+        replace: '{{ ansible_default_ipv4.address }}'
+
+    - name: REGEX Internal IP for DNS in openssl
+      ansible.builtin.replace:
+        path: /var/lib/kubernetes/openssl-controller.conf
+        regexp: 'INTERNAL_IP'
+        replace: '{{ ansible_default_ipv4.address }}'
+    - name: Regex Kubernetes master ip
+      ansible.builtin.replace:
+        path: /var/lib/kubernetes/openssl-controller.conf
+        regexp: 'MASTER_IP'
+        replace: '10.96.0.1'
+    - name: REGEX Component
+      ansible.builtin.replace:
+        path: /var/lib/kubernetes/openssl-controller.conf
+        regexp: 'COMPONENT'
+        replace: 'kube-apiserver'
+    - name: Regex Kubernetes master ip
+      ansible.builtin.replace:
+        path: /var/lib/kubernetes/openssl-controller.conf
+        regexp: 'SHORTNAME'
+        replace: '{{ ansible_hostname }}'
+    - name: Regex CN= 
+      ansible.builtin.replace:
+        path: /var/lib/kubernetes/openssl-controller.conf
+        regexp: 'FQDN'
+        replace: '{{ ansible_hostname }}'
+
+    - name: Execute openssl command to generate crt stuff
+      shell: sh /var/lib/kubernetes/kube-apiserver-cert.sh
+
+    - name: reload systemd serice
+      ansible.builtin.systemd:
+        name: kube-apiserver.service
+        daemon_reload: yes
+        state: stopped
+    - name: reload systemd serice
+      ansible.builtin.systemd:
+        name: kube-apiserver.service
+        state: started
+

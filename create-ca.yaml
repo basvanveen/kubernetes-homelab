@@ -1,0 +1,18 @@
+---
+  - name: "Creating CA=KUBERNETES"
+    hosts: localhost
+    connection: local 
+    tasks:
+
+
+    - name: "Get ETCD A records from designate the bad way :-)"
+      shell: "regex-etcd.sh"
+      register: "output"
+
+    - debug: var=output.stdout_lines
+
+    - name: "create CA and 2 certs"
+      shell: "cd certs/;sh create_certs.sh"
+      register: "output"
+
+    - debug: var=output.stdout_lines

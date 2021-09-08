@@ -1,0 +1,16 @@
+- name:
+  hosts: controllers
+  become: yes
+  tasks:
+    - name: reload systemd serice
+      ansible.builtin.systemd:
+        name: kube-apiserver.service
+        state: started
+    - name: reload systemd serice
+      ansible.builtin.systemd:
+        name: kube-controller-manager.service
+        state: started
+    - name: reload systemd serice
+      ansible.builtin.systemd:
+        name: kube-scheduler.service
+        state: started

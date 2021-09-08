@@ -1,0 +1,27 @@
+- name: Install kube-apiserver
+  hosts: controllers
+  become: yes
+  tasks:
+    - name: role yaml
+      ansible.builtin.copy:
+        src: files/kube-apiserver-clusterrole.yaml
+        dest: /var/lib/kubernetes/
+
+    - name: role binding yaml
+      ansible.builtin.copy:
+        src: files/kube-apiserver-clusterrolebinding.yaml
+        dest: /var/lib/kubernetes/
+
+
+    - name: Apply kubectl create clusterrole
+      shell: kubectl apply -f /var/lib/kubernetes/kube-apiserver-clusterrole.yaml
+      register: shell_output
+    - name: output
+      debug: var=shell_output
+    - name: Apply kubectl create clusterrolebinding
+      shell: kubectl apply -f /var/lib/kubernetes/kube-apiserver-clusterrolebinding.yaml
+    - name: output
+      debug: var=shell_output
+
+
+

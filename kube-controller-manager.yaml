@@ -1,0 +1,51 @@
+- name: Execute the command in remote shell; stdout goes to the specified file on the remote.
+  hosts: controllers
+  become: yes
+  tasks:
+    - name: show ipv4
+      debug: var=ansible_default_ipv4.address
+
+    - name: Write systemd file
+      ansible.builtin.copy:
+        src: files/kube-controller-manager.service
+        dest: /etc/systemd/system/
+    - name: Write kube scheduler config
+      ansible.builtin.copy:
+        src: files/kube-controller-manager.kubeconfig
+        dest: /var/lib/kubernetes
+
+    - name: Copy etcd server cert
+      ansible.builtin.copy:
+        src: certs/kube-controller-manager.crt
+        dest: /var/lib/kubernetes/
+    - name: Copy etcd server key
+      ansible.builtin.copy:
+        src: certs/kube-controller-manager.key
+        dest: /var/lib/kubernetes/
+
+    - name: Copy etcd server key
+      ansible.builtin.copy:
+        src: files/kube-controller-manager.sh
+        dest: /var/lib/kubernetes/
+
+    - name: execute shell script
+      shell: sh /var/lib/kubernetes/kube-controller-manager.sh
+
+    - name: output
+      debug: var=shell_output
+
+
+    - name: reload systemd serice
+      ansible.builtin.systemd:
+        name: kube-controller-manager.service
+        daemon_reload: yes
+        state: stopped
+    - name: start systemd serice
+      ansible.builtin.systemd:
+        name: kube-controller-manager.service
+        state: started
+
+
+
+    - name: output
+      debug: var=shell_output

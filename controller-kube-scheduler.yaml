@@ -1,0 +1,56 @@
+- name: Install kube-apiserver
+  hosts: controllers
+  become: yes
+  tasks:
+    - name: Write systemd file
+      ansible.builtin.copy:
+        src: files/kube-scheduler.service
+        dest: /etc/systemd/system/
+    - name: Write kube scheduler config
+      ansible.builtin.copy:
+        src: files/kube-scheduler.yaml
+        dest: /etc/kubernetes/config/
+
+    - name: Write systemd file
+      ansible.builtin.copy:
+        src: files/kube-scheduler.sh
+        dest: /var/lib/kubernetes/
+
+    - name: Copy cert shell script
+      ansible.builtin.copy:
+        src: files/kube-scheduler-cert.sh
+        dest: /var/lib/kubernetes/
+
+
+    - name: REGEX internal ip
+      ansible.builtin.replace:
+        path: /var/lib/kubernetes/kube-scheduler.sh
+        regexp: 'INTERNAL_IP'
+        replace: '{{ ansible_default_ipv4.address }}'
+    - name: REGEX internal ip
+      ansible.builtin.replace:
+        path: /etc/systemd/system/kube-scheduler.service
+        regexp: 'INTERNAL_IP'
+        replace: '{{ ansible_default_ipv4.address }}'
+
+    - name: Execute openssl command to generate crt stuff
+      shell: sh /var/lib/kubernetes/kube-scheduler-cert.sh
+
+
+    - name: execute shell script
+      shell: sh /var/lib/kubernetes/kube-scheduler.sh
+
+    - name: output
+      debug: var=shell_output
+
+
+    - name: reload systemd serice
+      ansible.builtin.systemd:
+        name: kube-scheduler.service
+        daemon_reload: yes
+        state: stopped
+    - name: start systemd serice
+      ansible.builtin.systemd:
+        name: kube-scheduler.service
+        state: started
+

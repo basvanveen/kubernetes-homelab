@@ -1,0 +1,54 @@
+- name: Install kubelet certs
+  hosts: nodes
+  become: yes
+  tasks:
+    - name: Copy CA cert
+      ansible.builtin.copy:
+        src: certs/ca.crt
+        dest: /var/lib/kubernetes/
+    - name: Copy CA key
+      ansible.builtin.copy:
+        src: certs/ca.key
+        dest: /var/lib/kubernetes/
+    - name: Copy api server cert
+      ansible.builtin.copy:
+        src: files/openssl-controller.conf
+        dest: /var/lib/kubernetes/
+    - name: Copy cert script
+      ansible.builtin.copy:
+        src: files/node-kubelet-cert.sh
+        dest: /var/lib/kubernetes/
+    - name: Copy cert script
+      ansible.builtin.copy:
+        src: files/node-kube-proxy-cert.sh
+        dest: /var/lib/kubernetes/
+
+    - name: REGEX Internal IP for DNS in openssl
+      ansible.builtin.replace:
+        path: /var/lib/kubernetes/openssl-controller.conf
+        regexp: 'INTERNAL_IP'
+        replace: '{{ ansible_default_ipv4.address }}'
+    - name: Regex Kubernetes master ip
+      ansible.builtin.replace:
+        path: /var/lib/kubernetes/openssl-controller.conf
+        regexp: 'MASTER_IP'
+        replace: '10.96.0.1'
+    - name: REGEX Component
+      ansible.builtin.replace:
+        path: /var/lib/kubernetes/openssl-controller.conf
+        regexp: 'COMPONENT'
+        replace: 'kube-controller-manager'
+    - name: Regex Kubernetes master ip
+      ansible.builtin.replace:
+        path: /var/lib/kubernetes/openssl-controller.conf
+        regexp: 'SHORTNAME'
+        replace: '{{ ansible_hostname }}'
+
+    - name: Execute openssl command to generate crt stuff
+      shell: sh /var/lib/kubernetes/node-kubelet-cert.sh
+    - name: Copy to kubelet dir
+      shell: cp -pr /var/lib/kubernetes/kubelet* /var/lib/kubelet/
+
+    - name: Execute openssl command to generate crt stuff
+      shell: sh /var/lib/kubernetes/node-kube-proxy-cert.sh
+

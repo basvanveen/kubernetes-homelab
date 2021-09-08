@@ -1,0 +1,35 @@
+- name: Install kube-apiserver
+  hosts: controllers
+  become: yes
+  tasks:
+    - name: Write systemd file
+      ansible.builtin.copy:
+        src: files/kube-admin-user.sh
+        dest: /var/lib/kubernetes/
+
+    - name: Copy cert shell script
+      ansible.builtin.copy:
+        src: files/kube-admin-cert.sh
+        dest: /var/lib/kubernetes/
+
+
+    - name: REGEX internal ip
+      ansible.builtin.replace:
+        path: /var/lib/kubernetes/kube-admin-user.sh
+        regexp: 'INTERNAL_IP'
+        replace: '{{ ansible_default_ipv4.address }}'
+
+    - name: Execute openssl command to generate crt stuff
+      shell: sh /var/lib/kubernetes/kube-admin-cert.sh
+
+    - name: execute shell script
+      shell: sh /var/lib/kubernetes/kube-admin-user.sh
+
+    - name: copy kubeconfig to root homedir
+      shell: mkdir -p /root/.kube;cp /var/lib/kubernetes/admin.kubeconfig /root/.kube/config
+
+    - name: output
+      debug: var=shell_output
+
+
+

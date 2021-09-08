@@ -1,0 +1,55 @@
+- name: Execute the command in remote shell; stdout goes to the specified file on the remote.
+  hosts: etcd
+  become: yes
+  tasks:
+    - name: download file with check (md5)
+      get_url:
+        url: https://github.com/etcd-io/etcd/releases/download/v3.4.15/etcd-v3.4.15-linux-amd64.tar.gz
+        dest: /tmp/
+        checksum: md5:ef3ea5e2b4dba1e4199d654d34f30636
+    - name: Extract etcd
+      ansible.builtin.unarchive:
+        src: /tmp/etcd-v3.4.15-linux-amd64.tar.gz
+        dest: /tmp/
+        remote_src: yes
+    - name: mv
+      shell: mv /tmp/etcd-v3.4.15-linux-amd64/etcd* /usr/local/bin/
+      register: shell_output
+    - name: mkdir and change access permissions
+      shell: mkdir -p /etc/etcd /var/lib/etcd;chmod 0700 /var/lib/etcd
+    - name: Copy CA certificate
+      ansible.builtin.copy:
+        src: certs/ca.crt
+        dest: /etc/etcd/
+    - name: Copy Etcd key
+      ansible.builtin.copy:
+        src: certs/etcd.key
+        dest: /etc/etcd/
+    - name: Copy Etcd certificate
+      ansible.builtin.copy:
+        src: certs/etcd.crt
+        dest: /etc/etcd/
+    - name: Copy systemd service file
+      ansible.builtin.copy:
+        src: files/etcd.service
+        dest: /etc/systemd/system/
+
+    - name: REGEX internal ip
+      ansible.builtin.replace:
+        path: /etc/systemd/system/etcd.service
+        regexp: 'INTERNAL_IP'
+        replace: '{{ ansible_default_ipv4.address }}'
+    - name: Regex etcdname
+      ansible.builtin.replace:
+        path: /etc/systemd/system/etcd.service
+        regexp: 'ETCD_NAME'
+        replace: '{{ ansible_hostname }}'
+
+    - name: reload systemd serice
+      ansible.builtin.systemd:
+        name: etcd.service
+        state: reloaded
+    - name: reload systemd serice
+      ansible.builtin.systemd:
+        name: etcd.service
+        state: started

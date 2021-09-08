@@ -1,0 +1,33 @@
+[req]
+req_extensions = v3_req
+distinguished_name = req_distinguished_name
+[req_distinguished_name]
+[ v3_req ]
+basicConstraints = CA:FALSE
+keyUsage = nonRepudiation, digitalSignature, keyEncipherment
+subjectAltName = @alt_names
+[ ssl_client ]
+extendedKeyUsage = clientAuth, serverAuth
+basicConstraints = CA:FALSE
+subjectKeyIdentifier=hash
+authorityKeyIdentifier=keyid,issuer
+subjectAltName = @alt_names
+[ v3_ca ]
+basicConstraints = CA:TRUE
+keyUsage = nonRepudiation, digitalSignature, keyEncipherment
+subjectAltName = @alt_names
+authorityKeyIdentifier=keyid:always,issuer
+
+[alt_names]
+DNS.1 = etcd
+DNS.2 = etcd-0
+DNS.3 = etcd-1
+DNS.4 = etcd-2
+DNS.5 = etcd-3
+DNS.6 = localhost
+DNS.7 = etcd-0.os.dopdop.nl
+DNS.8 = etcd-1.os.dopdop.nl
+DNS.9 = etcd-2.os.dopdop.nl
+IP.1=192.168.1.224
+IP.2=192.168.1.218
+IP.3=192.168.1.204
