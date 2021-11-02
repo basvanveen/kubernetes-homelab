@@ -1,0 +1,17 @@
+- name: Install cilium on controller
+  hosts: controllers
+  become: yes
+  tasks:
+    - name: Download cilium-cli binary
+      get_url:
+        url: https://github.com/cilium/cilium-cli/releases/latest/download/cilium-linux-amd64.tar.gz
+        dest: /tmp/
+
+    - name: extract and move to usrlocal
+      shell: tar xzvfC /tmp/cilium-linux-amd64.tar.gz /usr/local/bin
+
+        #    - name: install cilium the easy way :-)
+        #      shell: cilium install
+
+    - name: check status
+      shell: cilium status

@@ -2,6 +2,7 @@ certs/*.crt
 certs/*.ca
 certs/*.key
 certs/*.csr
+certs/*.srl
 .terraform/*
 .terraform.lock.hcl
 terraform.tfstate
