@@ -20,8 +20,14 @@ destroy-all:
 	terraform destroy
 create-ca:
 	ansible-playbook -i inventory create-ca.yaml
+inventory:
+	sh hosts_create.sh
 etcd:
 	ansible-playbook -i inventory etcd.yaml
+etcd-start:
+	ansible-playbook -i inventory etcd-start.yaml
+etcd-health:
+	ansible-playbook -i inventory etcd-health.yaml
 controller-full:
 	ansible-playbook -i inventory controller-binaries.yaml
 	ansible-playbook -i inventory controller-certificates.yaml
@@ -35,6 +41,8 @@ controller-binaries:
 	ansible-playbook -i inventory controller-binaries.yaml
 controller-certificates:
 	ansible-playbook -i inventory controller-certificates.yaml
+controller-start:
+	ansible-playbook -i inventory controller-start.yaml
 kube-apiserver:
 	ansible-playbook -i inventory controller-kube-apiserver.yaml
 kube-controller-manager:
@@ -60,3 +68,7 @@ node-certs:
 	ansible-playbook -i inventory node-certs.yaml
 node-config:
 	ansible-playbook -i inventory node-config.yaml
+node-start:
+	ansible-playbook -i inventory node-start.yaml
+cni-cilium:
+	ansible-playbook -i inventory controller-cilium.yaml

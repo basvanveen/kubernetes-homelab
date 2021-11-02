@@ -16,7 +16,7 @@ make infra-all
 - Create Initial CA/Cert and Inventory for playbooks
 ```
 make inventory
-make create-ce
+make create-ca
 ```
 
 - Create 3 node ETCD cluster
@@ -58,4 +58,28 @@ root@node-0:~# kubectl get nodes
 NAME     STATUS   ROLES    AGE   VERSION
 node-0   Ready    <none>   10m   v1.21.0
 node-1   Ready    <none>   10m   v1.21.0
+```
+
+- Install Cilium as CNI
+```
+make cni-cilium
+```
+
+- Check if cilium operator/agents are deployed correctly as Daemonset
+```
+root@controller-0:~# cilium status
+    /¯¯\
+ /¯¯\__/¯¯\    Cilium:         OK
+ \__/¯¯\__/    Operator:       OK
+ /¯¯\__/¯¯\    Hubble:         disabled
+ \__/¯¯\__/    ClusterMesh:    disabled
+    \__/
+
+DaemonSet         cilium             Desired: 2, Ready: 2/2, Available: 2/2
+Deployment        cilium-operator    Desired: 1, Ready: 1/1, Available: 1/1
+Containers:       cilium             Running: 2
+                  cilium-operator    Running: 1
+Cluster Pods:     0/0 managed by Cilium
+Image versions    cilium             quay.io/cilium/cilium:v1.10.5: 2
+                  cilium-operator    quay.io/cilium/operator-generic:v1.10.5: 1
 ```
